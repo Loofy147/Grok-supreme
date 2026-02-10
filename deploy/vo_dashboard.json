@@ -1,0 +1,22 @@
+{
+  "dashboard_name": "SSO-TS Strategic Dashboard",
+  "platform": "vO",
+  "version": "1.0.0",
+  "components": [
+    {
+      "id": "btc_momentum_chart",
+      "type": "timeseries",
+      "source": "src/examples/btc_momentum_backtest.py"
+    },
+    {
+      "id": "strategy_metrics",
+      "type": "kpi_grid",
+      "metrics": ["ROI", "Q-Score", "Sharpe"]
+    },
+    {
+      "id": "business_mgmt_logs",
+      "type": "data_table",
+      "source": "ci/validate_repo.py"
+    }
+  ]
+}

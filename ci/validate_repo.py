@@ -16,7 +16,8 @@ REQUIRED_DIRS = [
     "configs",
     "tests",
     "examples",
-    "ci"
+    "ci",
+    "deploy"
 ]
 
 CORE_FILES = [
@@ -26,7 +27,9 @@ CORE_FILES = [
     "src/enhancements/omega_enhancement_1_interactions.py",
     "data/skill_inventory.json",
     "data/trained_skill_weights.json",
-    "tests/meta_test_self_improvement.py"
+    "tests/meta_test_self_improvement.py",
+    "configs/vo_api.yaml",
+    "deploy/vo_dashboard.json"
 ]
 
 def validate():

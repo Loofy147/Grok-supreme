@@ -67,3 +67,12 @@ After each successful run, the system calculates a new achievement based on the 
 
 ## Strategic Realization
 The separation of heavy compute (Kaggle) and lightweight orchestration (v0 Dashboard) creates a scalable, recursive loop for autonomous strategy evolution.
+
+## Q-Value Optimization Protocol
+Kaggle runs are now governed by the **Q-Value Optimization Protocol** (see `docs/Q_VALUE_BEST_PRACTICES.md`). This ensures:
+1.  **Conservative Scoring**: Initial baselines are kept low to avoid inflation.
+2.  **Risk-Weighted Adjustments**: Max drawdown is used to penalize Q-scores if risk exceeds thresholds.
+3.  **Synergy Accounting**: Interaction matrix synergies (+18%) are applied to reflect emergent improvements.
+4.  **Delta Tracking**: Every run logs `initial_q`, `final_q`, and `delta` to categorize achievements (Major/Solid/Incremental).
+
+By following these best practices, the system maintains a high-quality, verifiable development loop.

@@ -32,7 +32,9 @@ CORE_FILES = [
     "deploy/vo_dashboard.json",
     "src/kaggle/kaggle_notebook.py",
     "scripts/kaggle_orchestrator.sh",
-    "docs/KAGGLE_INTEGRATION.md"
+    "docs/KAGGLE_INTEGRATION.md",
+    "docs/Q_VALUE_BEST_PRACTICES.md",
+    "examples/q_score_delta_sim.py"
 ]
 
 def validate():

@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0a0e27;
+  --foreground: #e4e6eb;
+  --card: #131829;
+  --card-foreground: #e4e6eb;
+  --primary: #00d9ff;
+  --primary-foreground: #0a0e27;
+  --secondary: #ff6b6b;
+  --secondary-foreground: #0a0e27;
+  --accent: #4c6ef5;
+  --accent-foreground: #ffffff;
+  --muted: #4a5568;
+  --muted-foreground: #a0aec0;
+  --border: #2d3748;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-card/50 backdrop-blur-sm border border-border/50;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent;
+  }
+
+  .metric-card {
+    @apply glass rounded-lg p-4 space-y-2;
+  }
+
+  .chart-container {
+    @apply glass rounded-lg p-6;
+  }
+
+  .nav-link {
+    @apply px-4 py-2 rounded-lg transition-colors hover:bg-accent/20 text-foreground;
+  }
+
+  .nav-link.active {
+    @apply bg-primary/20 text-primary;
+  }
+}

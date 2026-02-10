@@ -14,6 +14,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 interface TrainingRequest {
   dataset?: string
+  datasetSource?: 'kaggle' | 'demo' | 'local'
+  kaggleDataset?: string
   strategy?: string
   epochs?: number
   learningRate?: number
@@ -46,6 +48,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const {
       dataset = 'bitcoin-demo',
+      datasetSource = 'demo',
+      kaggleDataset = 'mczaryko/bitcoin-price-prediction',
       strategy = 'momentum-cross',
       epochs = 50,
       learningRate = 0.01,
@@ -54,22 +58,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate unique job ID
     const jobId = `train-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
+    // Check Kaggle credentials if needed
+    let kaggleWarning = ''
+    if (datasetSource === 'kaggle') {
+      const hasKaggleAuth = process.env.KAGGLE_USERNAME && process.env.KAGGLE_API_TOKEN
+      if (!hasKaggleAuth) {
+        kaggleWarning = ' (Note: Kaggle credentials not configured. Using demo data instead.)'
+      }
+    }
+
     console.log('[Training] Starting job', {
       jobId,
       dataset,
+      datasetSource,
+      kaggleDataset,
       strategy,
       epochs,
       learningRate,
     })
 
     // Simulate training process (in production, this would queue a background job)
+    let datasetInfo = dataset
+    if (datasetSource === 'kaggle') {
+      datasetInfo = `${kaggleDataset} (from Kaggle)`
+    }
+
     const result: TrainingResult = {
       status: 'in_progress',
       timestamp: new Date().toISOString(),
       jobId,
       epochs,
       progress: 0,
-      message: `Training job ${jobId} started. Processing ${dataset} dataset...`,
+      message: `Training job ${jobId} started. Processing ${datasetInfo} dataset...${kaggleWarning}`,
     }
 
     trainingJobs.set(jobId, result)

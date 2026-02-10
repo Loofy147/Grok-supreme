@@ -42,7 +42,24 @@ A sophisticated web application for simulating and analyzing cryptocurrency trad
 - Node.js 18+
 - Python 3.8+ (for training)
 - xAI API Key
-- Kaggle account (optional, for training)
+- Kaggle account (optional, for Kaggle datasets)
+
+### Kaggle Setup (Optional)
+
+To use real Kaggle cryptocurrency datasets:
+
+```bash
+# Quick setup (interactive)
+python3 scripts/setup_kaggle.py
+
+# Or manual setup
+# 1. Get token from https://www.kaggle.com/account
+# 2. Add to .env.local:
+#    KAGGLE_USERNAME=your_username
+#    KAGGLE_API_TOKEN=KGAT_xxxxxxxxxxxx
+```
+
+See [KAGGLE_SETUP.md](./KAGGLE_SETUP.md) for detailed instructions.
 
 ### Installation
 
@@ -72,7 +89,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, Recharts
 - **Backend**: Next.js API Routes
 - **AI**: xAI Grok 4, AI SDK 6
-- **Data**: CoinGecko API for real-time BTC prices
+- **Data**: CoinGecko API for real-time BTC prices, Kaggle API for datasets
+- **ML**: Python scikit-learn, pandas, numpy for training
 
 ## 📁 Project Structure
 

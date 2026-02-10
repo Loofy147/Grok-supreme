@@ -49,13 +49,28 @@ class KaggleDataFetcher:
             return
         
         try:
+            # Try environment variables first
+            kaggle_username = os.environ.get('KAGGLE_USERNAME')
+            kaggle_token = os.environ.get('KAGGLE_API_TOKEN')
+            
             self.api = KaggleApi()
-            self.api.authenticate()
-            self.authenticated = True
-            print("✅ Kaggle authentication successful")
+            if kaggle_username and kaggle_token:
+                # Authenticate with credentials from environment
+                self.api.username = kaggle_username
+                self.api.key = kaggle_token
+                self.authenticated = True
+                print(f"✅ Kaggle authentication successful (user: {kaggle_username})")
+            else:
+                # Fall back to kaggle.json file
+                self.api.authenticate()
+                self.authenticated = True
+                print("✅ Kaggle authentication successful (from ~/.kaggle/kaggle.json)")
         except Exception as e:
             print(f"⚠️  Kaggle authentication failed: {e}")
-            print("   Set up credentials at ~/.kaggle/kaggle.json")
+            print("   Set credentials via environment variables:")
+            print("   - KAGGLE_USERNAME")
+            print("   - KAGGLE_API_TOKEN")
+            print("   Or set up credentials at ~/.kaggle/kaggle.json")
     
     def list_crypto_datasets(self) -> List[Dict[str, str]]:
         """List popular crypto datasets on Kaggle"""

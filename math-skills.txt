@@ -1,0 +1,203 @@
+
+# Mathematical model — notation
+
+* Let the inventory contain (n) skills: (\mathcal{S}={s_1,\dots,s_n}).
+* Each skill (s_i) is represented by:
+
+  * embedding (signature vector) (v_i \in \mathbb{R}^d).
+  * quality score (q_i \in \mathbb{R}_{\ge 0}) (e.g., Q-score).
+  * priority (r_i) (mapped to numeric (p_i \ge 0)).
+  * cost (c_i \ge 0) (time, compute, cognitive effort).
+  * coverage or capability vector (u_i \in \mathbb{R}^k) (optional categorical outputs).
+* Define similarity (cosine):
+  [
+  \mathrm{sim}(v_i,v_j)=\frac{v_i\cdot v_j}{|v_i||v_j|}
+  ]
+* Adjacency / transfer matrix (A\in\mathbb{R}^{n\times n}):
+  [
+  A_{ij} = \mathrm{sim}(v_i,v_j)
+  ]
+  optionally thresholded: (\tilde A_{ij} = A_{ij}\cdot \mathbf{1}{A_{ij}> \tau}).
+
+# Objective: maximize expected outcomes while expanding coverage
+
+We want to select/compose a set of skills (or a pipeline) (X\subseteq\mathcal S) to maximize expected outcome under cost/resource constraints, and to grow the inventory by discovering/adding new skills that raise the objective.
+
+Define decision variables (x_i\in{0,1}) (1 = pick skill (s_i) for the current pipeline). Define a context vector of the task (t\in\mathbb{R}^d) (task embedding).
+
+Expected utility of skill (s_i) in task (t):
+[
+U_i(t) = q_i \cdot g\big(\mathrm{sim}(v_i, t)\big)
+]
+where (g) is a monotone function (e.g., (g(s)=\max(0,s)) or (g(s)=\exp(\beta s))).
+
+Global pipeline utility (with diversity bonus and transfer synergy):
+[
+\text{Utility}(x) = \sum_{i} x_i U_i(t) ;+; \gamma\sum_{i<j} x_i x_j,\mathrm{syn}*{ij}
+]
+where (\mathrm{syn}*{ij}) is a synergy term:
+[
+\mathrm{syn}*{ij} = \alpha\cdot \mathrm{sim}(v_i,v_j) ;+; (1-\alpha)\cdot \mathrm{orthog}(u_i,u_j)
+]
+or simply (\mathrm{syn}*{ij}=A_{ij}) if you want the simpler form. (\gamma\ge 0) balances synergy.
+
+Constraints (example):
+[
+\sum_i x_i c_i \le B \qquad x_i\in{0,1}
+]
+( (B) = budget )
+
+Thus a 0/1 quadratic program:
+[
+\max_{x\in{0,1}^n} ;; x^\top U + \frac{\gamma}{2}, x^\top (A + A^\top) x \quad \text{s.t. } c^\top x \le B
+]
+
+# Integration / transfer mapping (mathematical formula)
+
+When integrating a newly discovered skill (s_{new}) with vector (v_{new}), compute its projection / transformation to existing skill space to enable reuse:
+
+1. **Similarity vector** (w\in\mathbb{R}^n):
+   [
+   w_j = \mathrm{sim}(v_{new}, v_j)
+   ]
+
+2. **Transfer operator** (T\in\mathbb{R}^{d\times d}) — optionally learnable linear operator that maps a source skill embedding to target task embedding. If using a simple linear estimate from pairs ((v_s, v_t)):
+   [
+   T = \arg\min_T \sum_{(s,t)\in \mathcal{P}} |T v_s - v_t|^2 + \lambda |T|*F^2
+   ]
+   closed form ridge solution exists: (T = V*{t}V_s^\top (V_s V_s^\top + \lambda I)^{-1}).
+   Use (T) to propose adapted vector:
+   [
+   v_{new}^{(adapt)} = T v_{new}.
+   ]
+
+3. **Integrate embedding** using weighted average (conservative update):
+   [
+   v_{i}^{\text{new}} = \mathrm{normalize}\big(\alpha v_i + (1-\alpha) v_{new}^{(adapt)}\big)
+   ]
+   for nearby (i) where (w_i > \tau). (\alpha\in[0,1]) controls retention.
+
+# Expansion & discovery — formal update rule
+
+You discover a candidate skill (s') with embedding (v') and initial metadata (q', p', c'). Decide to add it if it increases long-term objective. Use **marginal utility**:
+[
+\Delta U(s') = \max_{x'} \text{Utility}(x + x') - \text{Utility}(x)
+]
+approximate by:
+[
+\hat\Delta U(s') \approx q' \cdot g(\mathrm{sim}(v',t)) ; - ; \eta c'
+]
+if (\hat\Delta U(s')>0) add (s').
+
+Alternatively perform **Bayesian update** on quality:
+
+* prior (q' \sim \mathrm{Beta}(\alpha_0,\beta_0)) (if quality in [0,1]); after observing success/failure counts update posterior. Use expected posterior mean.
+
+# Adaptation learning rule (gradient-style)
+
+If skill outputs can be parameterized and you have outcome signals, learn skill weights (w\in\mathbb{R}^n) to combine skill outputs into final prediction. For continuous relaxations (x_i\in[0,1]):
+
+Minimize loss (\mathcal{L}) on observed outcomes:
+[
+\min_{w} \mathcal{L}\Big(\sum_i w_i \cdot y_i, y^*\Big) + \lambda|w|_2^2
+]
+Gradient step:
+[
+w \leftarrow w - \eta \nabla_w \mathcal{L}
+]
+where (y_i) is skill (i)'s output contribution.
+
+# Algorithm — pipeline (pseudocode)
+
+Use this as a ready-to-implement algorithm.
+
+```
+Inputs:
+  inventory file (for each skill i: v_i, q_i, p_i, c_i, optional u_i)
+  task embedding t
+  budget B
+  parameters: gamma, alpha, tau, lambda
+
+1. Load inventory -> {v_i, q_i, p_i, c_i}
+2. Compute A_ij = sim(v_i, v_j) for all i,j
+3. For each skill i compute utility score U_i = q_i * g(sim(v_i, t))
+4. Solve selection:
+   - Solve quadratic knapsack: max_x x^T U + (gamma/2) x^T A x  s.t. c^T x <= B, x in {0,1}
+   - Use greedy approx: rank by marginal_gain_i = (U_i + gamma * sum_j x_j A_ij) / c_i
+   - Pick top skills until budget exhausted
+5. Compose pipeline: order selected skills by priority p_i (desc) or by graph centrality.
+6. Run pipeline; observe outcome reward R (scalar)
+7. Update q_i for used skills:
+   q_i <- q_i + learning_rate * (R - q_i)  (or Bayesian update)
+8. Discovery loop:
+   - If new skill file found: parse to v_new, q_new, c_new
+   - Compute w = [sim(v_new, v_j)]
+   - If max(w) > tau or estimated delta utility > 0, integrate:
+       - Option A: add as new node s_{n+1}, update A and inventory
+       - Option B: adapt nearby v_j via v_j <- normalize(alpha v_j + (1-alpha) v_new)
+9. Repeat for new tasks
+```
+
+# Algorithmic complexity
+
+* Building similarity matrix: (O(n^2 d)) (can be reduced via approximate nearest neighbors).
+* Selection (greedy): (O(n \log n)).
+* Solving full QP exactly: NP-hard (binary quadratic knapsack), use heuristics or relaxation.
+
+# Concrete example (tiny numeric)
+
+Assume 3 skills, (d)-embeddings reduced to scalars for clarity:
+
+* (v=(0.9,0.6,0.1)) (1D proxies)
+* (q=(0.8,0.5,0.2))
+* (c=(3,2,1))
+* task (t=0.85), (g(s)=s), (\gamma=0.1), budget (B=4).
+
+Compute (U_i = q_i\cdot \mathrm{sim}(v_i,t)). With 1D sim simply correlation: sim = v_i*t/(|v_i||t|)=1 because same sign and 1D -> but for realistic vectors do cosine. For simplicity:
+
+* (U_1 \approx 0.8*1=0.8)
+* (U_2 \approx 0.5*1=0.5)
+* (U_3 \approx 0.2*1=0.2)
+
+Greedy by marginal per cost:
+
+* skill1: 0.8/3 = 0.2667
+* skill2: 0.5/2 = 0.25
+* skill3: 0.2/1 = 0.2
+
+Pick skill1 (cost3), budget left=1, then pick skill3 -> total utility ≈ 0.8 + 0.2 + small synergy.
+
+(If you want, I can compute a correct multi-dimensional cosine example step-by-step.)
+
+# Transfer formula (learning a linear transfer)
+
+If you want explicit transferable linear mapping between source and target skill space:
+
+* collect pairs ((v^{(s)}_i, v^{(t)}_i)) where source skill i was successfully adapted to target tasks.
+* compute (T) via ridge solution:
+  [
+  T = V_t V_s^\top (V_s V_s^\top + \lambda I)^{-1}
+  ]
+  where columns of (V_s) are the source vectors, columns of (V_t) are target vectors.
+
+Use (T v_{\text{candidate}} \to) candidate adapted vector.
+
+# Practical implementation notes
+
+* Embeddings (v_i): obtain from your parsed skill documents (the `signature` text). Use a consistent embedding model and dimension (d).
+* Map textual priorities (r_i) to numeric (p_i) (e.g., CRITICAL=100, HIGH=75, MEDIUM=50, LOW=25).
+* Normalize embeddings (unit vectors) before computing cosine similarity.
+* Use ANN (FAISS etc.) to scale similarity search for large (n).
+* For inventory updates, version the inventory file so you can roll back.
+
+# Ready-to-use formulas summary
+
+* similarity: (\mathrm{sim}(v_i,v_j)=\frac{v_i\cdot v_j}{|v_i||v_j|}).
+* adjacency: (A_{ij}=\mathrm{sim}(v_i,v_j)).
+* skill utility: (U_i(t)=q_i\cdot g(\mathrm{sim}(v_i,t))).
+* pipeline objective: maximize (x^\top U + \frac{\gamma}{2} x^\top A x) subject to (c^\top x\le B).
+* integration blending: (v_{\text{new}}^{(adapt)} = T v_{\text{new}}), then (v_i\leftarrow\mathrm{normalize}(\alpha v_i + (1-\alpha) v_{\text{new}}^{(adapt)})).
+* transfer operator (ridge): (T = V_t V_s^\top (V_s V_s^\top+\lambda I)^{-1}).
+
+---
+

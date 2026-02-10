@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-02-06T12:29:13.983344Z",
+  "skills": [
+    {
+      "name": "Transfer Learning",
+      "path": "/mnt/data/SKILL_transfer_learning.md",
+      "priority": "CRITICAL",
+      "q_score": 0.946,
+      "type": "Universal Capability",
+      "description": "Transfer Learning is the ability to apply knowledge learned in one domain to solve problems in a different domain by identifying structural similarities, functional equivalents, and analogical mappings. This is a Layer 0 (Universal) capability that enables rapid adaptation to new situations by leveraging existing knowledge rather than learning from scratch.",
+      "triggers": [
+        "Trigger this skill whenever:",
+        "User asks about a domain Claude has limited direct experience with",
+        "Problem structure resembles a known domain (e.g., \"chemistry is like cooking\")",
+        "User says \"I come from X background, how does Y work?\"",
+        "Task requires solving new problems with limited domain-specific training",
+        "Conversation involves cross-domain analogies or metaphors",
+        "User asks \"what's this like?\" or \"can you relate this to...?\"",
+        "Learning efficiency matters (leverage existing knowledge vs learn from scratch)"
+      ],
+      "signature": "transfer learning | transfer learning is the ability to apply knowledge learned in one domain to solve problems in a different domain by identifying structural similarities, functional equivalents, and analogical mappings. this is a layer 0 (universal) capability that enables rapid adaptation to new situations by leveraging existing knowledge rather than learning from scratch."
+    },
+    {
+      "name": "Universal Problem Solving",
+      "path": "/mnt/data/SKILL_universal_problem_solving.md",
+      "priority": "CRITICAL",
+      "q_score": 0.946,
+      "type": "Universal Capability",
+      "description": "Universal Problem Solving is the meta-capability to solve problems across any domain by applying domain-invariant problem-solving frameworks. Rather than requiring domain-specific expertise for each problem type, this capability leverages universal problem structures—decomposition, constraint satisfaction, search, optimization—that transcend individual domains.",
+      "triggers": [
+        "Trigger this skill whenever:",
+        "User presents a novel problem outside standard domains",
+        "Problem requires systematic approach (not just recall)",
+        "User says \"I don't know where to start\"",
+        "Task involves complex constraints and trade-offs",
+        "Multiple solution paths exist and need evaluation",
+        "User asks \"how would you approach X?\"",
+        "Problem is ill-defined and needs structuring",
+        "Domain-specific heuristics aren't available"
+      ],
+      "signature": "universal problem solving | universal problem solving is the meta-capability to solve problems across any domain by applying domain-invariant problem-solving frameworks. rather than requiring domain-specific expertise for each problem type, this capability leverages universal problem structures—decomposition, constraint satisfaction, search, optimization—that transcend individual domains."
+    }
+  ]
+}

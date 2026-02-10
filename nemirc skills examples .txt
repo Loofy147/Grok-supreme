@@ -1,0 +1,168 @@
+# Numeric worked example using actual SKILL_*.md signatures from /mnt/data
+# This will:
+# - Load the generated inventory created previously (/mnt/data/skill_inventory.json)
+# - Build simple TF-IDF embeddings from the signature text (deterministic, small d)
+# - Compute cosine similarities, adjacency matrix, utilities for a sample task
+# - Run a greedy selection under a budget, showing chosen pipeline
+# - Simulate discovering a new skill, compute transfer coefficients, and show blended updates
+# - Display results in tables for clarity
+from pathlib import Path
+import json, math, re, numpy as np, pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import normalize
+
+INV_PATH = "/mnt/data/skill_inventory.json"
+
+inv = json.loads(Path(INV_PATH).read_text(encoding="utf-8"))
+skills = inv["skills"]
+
+# Prepare signature texts
+names = [s["name"] for s in skills]
+signatures = [s.get("signature","") for s in skills]
+
+# Example task (chosen to be relevant to both skills)
+task_text = "Transfer learning and universal problem solving to adapt techniques across domains for new tasks."
+
+# New discovered candidate skill text (to simulate discovery)
+new_skill_text = "Meta-transfer: adapt learned procedures to new domains using analogies and structural mapping."
+
+# Build TF-IDF embeddings for skills + task + new skill (so idf consistent)
+corpus = signatures + [task_text, new_skill_text]
+tfidf = TfidfVectorizer(lowercase=True, token_pattern=r"(?u)\b\w+\b", stop_words="english")
+X = tfidf.fit_transform(corpus).toarray()  # shape (n+2, vocab)
+# Normalize to unit vectors (cosine ready)
+X = normalize(X, norm='l2', axis=1)
+
+n = len(signatures)
+V = X[:n]           # skill embeddings (n x d)
+t_vec = X[n]        # task embedding
+v_new = X[n+1]      # new skill embedding
+
+# Compute cosine similarity matrix among skills
+A = V.dot(V.T)      # n x n cosine similarities (since normalized)
+
+# Compute similarity of each skill to task and to new skill
+sim_task = V.dot(t_vec)
+sim_new = V.dot(v_new)
+
+# Metadata: quality q_i, priority p_i, cost c_i
+# Use defaults when missing
+def map_priority(p):
+    m = {"CRITICAL":100,"HIGH":75,"MEDIUM":50,"LOW":25,"UNKNOWN":10}
+    return m.get(str(p).upper(), 10)
+
+q = np.array([ (s.get("q_score") if s.get("q_score") is not None else 0.6) for s in skills ], dtype=float)
+p = np.array([ map_priority(s.get("priority","UNKNOWN")) for s in skills ], dtype=float)
+# cost: heuristic: 1 + floor(signature_word_count / 20)
+def word_count(text):
+    return len(re.findall(r"\b\w+\b", text))
+c = np.array([ 1 + (word_count(s.get("description","") or s.get("signature","")) // 20) for s in skills ], dtype=float)
+c = np.clip(c, 1, 10)
+
+# Utility function U_i(t) = q_i * g(sim)
+def g(s): return max(0.0, s)  # simple choice
+U = q * np.array([g(x) for x in sim_task])
+
+# Greedy selection algorithm for quadratic objective approximation
+gamma = 0.2   # synergy weight
+budget = 4.0  # example budget
+
+selected = np.zeros(n, dtype=int)
+remaining_budget = budget
+order = []
+total_utility = 0.0
+
+# Greedy loop: pick argmax of marginal_gain/cost
+while True:
+    best_idx = None
+    best_score = -1e9
+    for i in range(n):
+        if selected[i]==1: continue
+        if c[i] > remaining_budget: continue
+        # marginal utility approx: base U[i] + gamma * sum_{j in selected} A[i,j] * U[j] (simple heuristic)
+        synergy_term = gamma * (A[i, selected==1].sum() if selected.any() else 0.0)
+        marginal_gain = U[i] + synergy_term
+        score = marginal_gain / c[i]
+        if score > best_score:
+            best_score = score
+            best_idx = i
+    if best_idx is None: break
+    # select it
+    selected[best_idx] = 1
+    order.append(best_idx)
+    remaining_budget -= c[best_idx]
+    total_utility += U[best_idx] + gamma * (A[best_idx, selected==1].sum() - A[best_idx,best_idx])  # simple add
+    # continue
+
+selected_names = [names[i] for i in np.where(selected==1)[0]]
+
+# Compute transfer coefficients (alpha) solving ridge: V.T alpha = v_new (we solve for coefficients in skill basis)
+# We'll solve min_alpha ||V^T alpha - v_new||^2 + lambda ||alpha||^2  over alpha (n-dim),
+# But dims: V is (n x d), v_new is (d,) -> we want weights w such that w^T V approximates v_new -> w as length-n
+# Solve: minimize || w^T V - v_new ||^2 + lambda||w||^2
+# Equivalent: minimize || V^T w - v_new ||^2 + lambda||w||^2  where V^T is (d x n)
+# Solve (V V^T)?? We'll solve using normal equations: (V V^T) w = V v_new -> but shapes...
+# Correct approach: Let M = V (n x d). We want w (n,) s.t. M^T w ≈ v_new  -> M^T shape (d x n). Solve (M M^T) w = M v_new
+lambda_ridge = 1e-3
+M = V  # (n x d)
+MMt = M.dot(M.T)   # n x n
+rhs = M.dot(v_new) # n
+# ridge: (MMt + lambda I) w = rhs
+w_coeff = np.linalg.solve(MMt + lambda_ridge * np.eye(n), rhs)
+
+# Build adapted vector from coefficients: v_new_adapt = sum_i w_i * v_i
+v_new_adapt = w_coeff.dot(V)  # (d,)
+# Normalize
+v_new_adapt = v_new_adapt / (np.linalg.norm(v_new_adapt) + 1e-12)
+
+# Decide which skills are "nearby" to update: threshold on sim_new
+tau = 0.15
+nearby_idx = np.where(sim_new > tau)[0]
+
+# Blend update: for nearby skills, v_i_new = normalize(alpha_blend * v_i + (1-alpha_blend) * v_new_adapt)
+alpha_blend = 0.7
+V_before = V.copy()
+V_after = V.copy()
+for i in nearby_idx:
+    blended = alpha_blend * V[i] + (1-alpha_blend) * v_new_adapt
+    V_after[i] = blended / (np.linalg.norm(blended) + 1e-12)
+
+# Compute similarities before/after to the new skill and to the task
+sim_new_before = V_before.dot(v_new)
+sim_new_after = V_after.dot(v_new)
+sim_task_before = V_before.dot(t_vec)
+sim_task_after = V_after.dot(t_vec)
+
+# Prepare DataFrame to display skill stats
+rows = []
+for i in range(n):
+    rows.append({
+        "name": names[i],
+        "q_score": float(q[i]),
+        "priority": int(p[i]),
+        "cost": float(c[i]),
+        "sim_to_task_before": float(sim_task_before[i]),
+        "U_i": float(U[i]),
+        "sim_to_new_before": float(sim_new_before[i]),
+        "sim_to_new_after": float(sim_new_after[i]),
+        "selected": bool(selected[i])
+    })
+df = pd.DataFrame(rows).sort_values(by="U_i", ascending=False).reset_index(drop=True)
+
+# Display results
+from caas_jupyter_tools import display_dataframe_to_user
+display_dataframe_to_user("Skill Selection & Similarities", df)
+
+print("\nSUMMARY")
+print("Task text:", task_text)
+print("Budget:", budget, "  gamma:", gamma)
+print("Selected pipeline (in order):", selected_names)
+print("Total utility (approx):", round(float(total_utility), 4))
+print("\nTransfer coefficients (w) for new skill expressed in skill basis (n values):")
+for i, val in enumerate(w_coeff):
+    print(f" - {names[i]}: {val:.4f}   (sim to new skill: {sim_new[i]:.4f})")
+print("\nNearby skills (sim_new > tau=%.2f):" % tau, [names[i] for i in nearby_idx])
+print("\nSimilarity to task BEFORE and AFTER blending (for nearby skills):")
+for i in nearby_idx:
+    print(f" - {names[i]}: before {sim_task_before[i]:.4f}, after {sim_task_after[i]:.4f}")
+

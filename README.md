@@ -40,3 +40,10 @@ To run a sample backtest:
 ```bash
 python3 examples/btc_momentum_backtest.py
 ```
+
+## Kaggle Integration
+Heavy computational tasks such as weight optimization and large-scale simulations are offloaded to Kaggle.
+- **Notebooks**: `src/kaggle/`
+- **Orchestration**: `scripts/kaggle_orchestrator.sh`
+- **Results**: `data/kaggle_runs/`
+See `docs/KAGGLE_INTEGRATION.md` for detailed usage and achievement metrics.

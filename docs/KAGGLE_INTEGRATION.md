@@ -24,7 +24,7 @@ To push the notebook, you need a `kernel-metadata.json` in `src/kaggle/`.
 Example:
 ```json
 {
-  "id": "username/sso-ts-training",
+  "id": "djangolimited/sso-ts-training",
   "title": "SSO-TS Training",
   "code_file": "kaggle_notebook.py",
   "language": "python",

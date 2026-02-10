@@ -7,7 +7,7 @@ set -e
 # Default values
 NOTEBOOK_PATH="src/kaggle/kaggle_notebook.py"
 OUTPUT_DIR="data/kaggle_runs/latest"
-SLUG="username/sso-ts-training"
+SLUG="djangolimited/sso-ts-training"
 
 case "$1" in
     push)

@@ -31,6 +31,7 @@ CORE_FILES = [
     "configs/vo_api.yaml",
     "deploy/vo_dashboard.json",
     "src/kaggle/kaggle_notebook.py",
+    "src/kaggle/kernel-metadata.json",
     "scripts/kaggle_orchestrator.sh",
     "docs/KAGGLE_INTEGRATION.md",
     "docs/Q_VALUE_BEST_PRACTICES.md",

@@ -1,0 +1,9 @@
+# vO Platform API Configuration
+# Integration with xAI/Grok API services
+api_endpoint: "https://api.vo-platform.example.com/v1"
+provider: "grok"
+hooks:
+  - name: "code_execution"
+    enabled: true
+  - name: "web_search"
+    enabled: true

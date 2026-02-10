@@ -160,3 +160,9 @@ git push origin main
 ## 📚 Documentation
 
 See `/docs/OMEGA_DEEP_STUDY_REPORT.md` for detailed information about the OMEGA Framework and AI architecture.
+## Kaggle Integration
+Heavy computational tasks such as weight optimization and large-scale simulations are offloaded to Kaggle.
+- **Notebooks**: `src/kaggle/`
+- **Orchestration**: `scripts/kaggle_orchestrator.sh`
+- **Results**: `data/kaggle_runs/`
+See `docs/KAGGLE_INTEGRATION.md` for detailed usage and achievement metrics.

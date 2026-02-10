@@ -12,12 +12,12 @@ REQUIRED_DIRS = [
     "src/core",
     "src/skills",
     "src/enhancements",
-    "data/simulations",
     "configs",
     "tests",
     "examples",
     "ci",
-    "deploy"
+    "deploy",
+    "data/kaggle_runs/latest"
 ]
 
 CORE_FILES = [
@@ -29,7 +29,13 @@ CORE_FILES = [
     "data/trained_skill_weights.json",
     "tests/meta_test_self_improvement.py",
     "configs/vo_api.yaml",
-    "deploy/vo_dashboard.json"
+    "deploy/vo_dashboard.json",
+    "src/kaggle/kaggle_notebook.py",
+    "src/kaggle/kernel-metadata.json",
+    "scripts/kaggle_orchestrator.sh",
+    "docs/KAGGLE_INTEGRATION.md",
+    "docs/Q_VALUE_BEST_PRACTICES.md",
+    "examples/q_score_delta_sim.py"
 ]
 
 def validate():

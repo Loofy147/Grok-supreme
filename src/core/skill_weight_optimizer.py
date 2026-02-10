@@ -704,7 +704,7 @@ def main():
     # ========================================================================
     print("Step 6: Saving weights...")
     
-    trainer.save_weights('/home/claude/trained_skill_weights.json')
+    trainer.save_weights('../../data/trained_skill_weights.json')
     
     # ========================================================================
     # STEP 7: Test Emergent Skill Synthesis

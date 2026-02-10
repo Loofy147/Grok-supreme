@@ -8,6 +8,7 @@ Task: Generate comprehensive instructions for myself about what I did wrong
 This is the ultimate test: Can OMEGA help me become a better assistant?
 """
 
+import sys, os; sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src/enhancements')))
 import sys
 import json
 from omega_enhancement_1_interactions import DimensionInteractionMatrix

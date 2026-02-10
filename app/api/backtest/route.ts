@@ -20,8 +20,9 @@ export async function POST(request: NextRequest) {
       return new Response('Strategy and time window are required', { status: 400 })
     }
 
-    const prompt = `
-You are a cryptocurrency trading strategy analyst. Simulate a backtest for the following strategy:
+    const systemPrompt = 'You are a quantitative finance expert. Provide detailed backtest analysis with realistic metrics.'
+    
+    const userPrompt = `You are a cryptocurrency trading strategy analyst. Simulate a backtest for the following strategy:
 
 Strategy: ${strategy}
 Time Window: ${timeWindow}
@@ -39,15 +40,14 @@ Generate realistic backtest results that should include:
 7. Worst Trade
 8. Risk-Adjusted Return
 
-Provide results in JSON format with realistic values based on Bitcoin market behavior.
-`
+Provide results in JSON format with realistic values based on Bitcoin market behavior.`
 
     const result = streamText({
       model: xai('grok-4', {
         apiKey: process.env.XAI_API_KEY,
       }),
-      prompt,
-      system: 'You are a quantitative finance expert. Provide detailed backtest analysis with realistic metrics.',
+      prompt: userPrompt,
+      system: systemPrompt,
       temperature: 0.8,
     })
 

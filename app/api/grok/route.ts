@@ -10,12 +10,15 @@ export async function POST(request: NextRequest) {
       return new Response('Prompt is required', { status: 400 })
     }
 
+    const defaultSystemPrompt = 'You are Grok, a helpful AI assistant. Provide accurate, insightful responses.'
+    const finalSystemPrompt = systemPrompt || defaultSystemPrompt
+
     const result = streamText({
       model: xai('grok-4', {
         apiKey: process.env.XAI_API_KEY,
       }),
-      prompt: prompt,
-      system: systemPrompt || 'You are Grok, a helpful AI assistant. Provide accurate, insightful responses.',
+      prompt,
+      system: finalSystemPrompt,
       temperature: 0.7,
     })
 

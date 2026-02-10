@@ -45,7 +45,33 @@ export default function StrategySimulator() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const validateFormData = (): string | null => {
+    if (!formData.strategy || formData.strategy.trim() === '') {
+      return 'Please select a strategy'
+    }
+    if (!formData.timeWindow || formData.timeWindow.trim() === '') {
+      return 'Please select a time window'
+    }
+    if (formData.initialCapital <= 0) {
+      return 'Initial capital must be greater than 0'
+    }
+    if (formData.fees < 0 || formData.fees > 100) {
+      return 'Trading fees must be between 0% and 100%'
+    }
+    if (formData.slippage < 0 || formData.slippage > 100) {
+      return 'Slippage must be between 0% and 100%'
+    }
+    return null
+  }
+
   const handleRunBacktest = async () => {
+    // Validate form data
+    const validationError = validateFormData()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setLoading(true)
     setError(null)
 
@@ -169,6 +195,8 @@ export default function StrategySimulator() {
                   </label>
                   <input
                     type="number"
+                    min="1"
+                    max="1000000"
                     value={formData.initialCapital}
                     onChange={(e) =>
                       setFormData({
@@ -178,6 +206,7 @@ export default function StrategySimulator() {
                     }
                     className="w-full bg-background border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">$1 - $1,000,000</p>
                 </div>
 
                 {/* Fees */}
@@ -188,6 +217,8 @@ export default function StrategySimulator() {
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="100"
                     value={formData.fees}
                     onChange={(e) =>
                       setFormData({
@@ -197,6 +228,7 @@ export default function StrategySimulator() {
                     }
                     className="w-full bg-background border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">0% - 100%</p>
                 </div>
 
                 {/* Slippage */}
@@ -207,6 +239,8 @@ export default function StrategySimulator() {
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="100"
                     value={formData.slippage}
                     onChange={(e) =>
                       setFormData({
@@ -216,6 +250,7 @@ export default function StrategySimulator() {
                     }
                     className="w-full bg-background border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">0% - 100%</p>
                 </div>
 
                 <button

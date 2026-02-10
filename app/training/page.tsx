@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { AppLayout } from '@/app/app-layout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { ArrowLeft, Brain } from 'lucide-react'
 
 interface TrainingResult {
   status: 'success' | 'in_progress' | 'error'
@@ -66,8 +69,32 @@ export default function TrainingPage() {
     return () => clearInterval(interval)
   }, [jobId])
 
+  const validateConfig = (): string | null => {
+    if (!config.dataset || config.dataset.trim() === '') {
+      return 'Please select a dataset'
+    }
+    if (!config.strategy || config.strategy.trim() === '') {
+      return 'Please select a strategy'
+    }
+    if (config.epochs < 10 || config.epochs > 500) {
+      return 'Epochs must be between 10 and 500'
+    }
+    if (config.learningRate < 0.0001 || config.learningRate > 0.1) {
+      return 'Learning rate must be between 0.0001 and 0.1'
+    }
+    return null
+  }
+
   const handleStartTraining = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate configuration
+    const validationError = validateConfig()
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     setIsTraining(true)
     setError(null)
 
@@ -107,14 +134,17 @@ export default function TrainingPage() {
     : []
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
-            Model Training
-          </h1>
-          <p className="text-slate-400">Train skill weights using Kaggle datasets and advanced optimization</p>
+    <AppLayout>
+      <div className="space-y-8">
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Brain className="w-6 h-6 text-primary" />
+              <h1 className="text-4xl font-bold">Model Training</h1>
+            </div>
+            <p className="text-muted-foreground">Train skill weights using Kaggle datasets and advanced optimization</p>
+          </div>
         </div>
 
         {/* Main Grid */}
@@ -365,6 +395,6 @@ export default function TrainingPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }

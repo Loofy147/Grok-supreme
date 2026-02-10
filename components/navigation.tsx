@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Activity, BarChart3, Zap, Shield, Settings } from 'lucide-react'
+import { Activity, BarChart3, Zap, Shield, Settings, Brain } from 'lucide-react'
 
 export function Navigation() {
   const pathname = usePathname()
@@ -11,6 +11,7 @@ export function Navigation() {
     { href: '/', label: 'Dashboard', icon: Activity },
     { href: '/simulator', label: 'Strategy Simulator', icon: BarChart3 },
     { href: '/orchestrator', label: 'Skill Orchestrator', icon: Zap },
+    { href: '/training', label: 'Model Training', icon: Brain },
     { href: '/business', label: 'Business', icon: Shield },
   ]
 

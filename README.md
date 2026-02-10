@@ -24,7 +24,14 @@ A sophisticated web application for simulating and analyzing cryptocurrency trad
 - **Emergent Capabilities**: Automatically discovers emergent abilities from skill combinations
 - **Q-Score Integration**: Real-time capability scoring
 
-### 4. Business Management
+### 4. Model Training (NEW!)
+- **Kaggle Integration**: Fetch datasets from Kaggle directly
+- **Automated Preprocessing**: Technical indicator calculation and feature normalization
+- **Skill Weight Optimization**: Train OMEGA Framework weights using gradient descent
+- **Real-time Progress**: Monitor training with loss curves and metrics
+- **Multiple Strategies**: Support for momentum, RSI, MACD, Bollinger Bands
+
+### 5. Business Management
 - **Activity Logs**: Track all system actions and API calls
 - **Q-Delta Achievements**: Monitor improvements in AI capability metrics
 - **User Management**: Manage roles and permissions
@@ -33,7 +40,9 @@ A sophisticated web application for simulating and analyzing cryptocurrency trad
 
 ### Prerequisites
 - Node.js 18+
+- Python 3.8+ (for training)
 - xAI API Key
+- Kaggle account (optional, for training)
 
 ### Installation
 
@@ -44,6 +53,13 @@ npm install
 # Set up environment variables
 cp .env.local.example .env.local
 # Edit .env.local and add your XAI_API_KEY
+
+# Set up Python training environment
+pip install -r requirements.txt
+
+# Run setup script (optional)
+# Linux/Mac: bash scripts/setup_training.sh
+# Windows: scripts/setup_training.bat
 
 # Run development server
 npm run dev

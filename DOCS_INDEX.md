@@ -13,6 +13,7 @@ Complete guide to all documentation files in this repository.
 - **Setup & Architecture**: [DEVELOPER_REFERENCE.md](DEVELOPER_REFERENCE.md) - Code guide
 - **Main Docs**: [README.md](README.md) - Project overview
 - **AI Framework**: [docs/OMEGA_DEEP_STUDY_REPORT.md](docs/OMEGA_DEEP_STUDY_REPORT.md) - Framework details
+- **Model Training**: [TRAINING_GUIDE.md](TRAINING_GUIDE.md) - Training with Kaggle
 
 ### For Project Managers
 - **Project Status**: [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Completion status

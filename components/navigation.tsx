@@ -9,6 +9,7 @@ export function Navigation() {
 
   const links = [
     { href: '/', label: 'Dashboard', icon: Activity },
+    { href: '/signals', label: 'Live Signals', icon: BarChart3 },
     { href: '/simulator', label: 'Strategy Simulator', icon: BarChart3 },
     { href: '/orchestrator', label: 'Skill Orchestrator', icon: Zap },
     { href: '/training', label: 'Model Training', icon: Brain },
